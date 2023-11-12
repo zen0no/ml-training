@@ -1,4 +1,7 @@
 import numpy as np
+
+from collections import Counter
+
 """
 Credits: the original code belongs to Stanford CS231n course assignment1. Source link: http://cs231n.github.io/assignments2019/assignment1/
 """
@@ -34,8 +37,7 @@ class KNearestNeighbor:
         - num_loops: Determines which implementation to use to compute distances
           between training points and testing points.
 
-        Returns:
-        - y: A numpy array of shape (num_test,) containing predicted labels for the
+        Returns:closest_y
           test data, where y[i] is the predicted label for the test point X[i].
         """
         if num_loops == 0:
@@ -75,7 +77,9 @@ class KNearestNeighbor:
                 # not use a loop over dimension, nor use np.linalg.norm().          #
                 #####################################################################
                 # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+                x_test = X[i]
+                x_train = self.X_train[j]
+                dists[i, j] = ((x_test - x_train) ** 2).sum() ** 0.5
                 # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -97,7 +101,8 @@ class KNearestNeighbor:
             # Do not use np.linalg.norm().                                        #
             #######################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+            x_test = X[i]
+            dists[i, :] = np.sqrt((np.square(self.X_train - x_test)).sum(axis=1))
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -124,8 +129,11 @@ class KNearestNeighbor:
         # HINT: Try to formulate the l2 distance using matrix multiplication    #
         #       and two broadcast sums.                                         #
         #########################################################################
-        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)***** 
+        x_1 = (X ** 2).sum(axis=1).reshape(num_test, 1)
+        x_2 = (self.X_train ** 2).sum(axis=1).reshape(1, num_train)
+        x_12 = -2 * X.dot(self.X_train.T)
+        dists = np.sqrt(x_1 + x_2 + x_12)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -155,7 +163,7 @@ class KNearestNeighbor:
             # Hint: Look up the function numpy.argsort.                             #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+            closest_y = self.y_train[np.argsort(dists[i])[:k]]
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             #########################################################################
             # TODO:                                                                 #
@@ -165,8 +173,7 @@ class KNearestNeighbor:
             # label.                                                                #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-
+            y_pred[i] = Counter(closest_y).most_common(1)[0][0]    
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         return y_pred
